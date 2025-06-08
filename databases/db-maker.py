@@ -41,13 +41,12 @@ def add_bms_cell_messages(db: Database, base_id):
                     name        = f"CELL_{seg}x{cell}_isDischarging", 
                     start       = 32, 
                     length      = 1, 
-                    byte_order  = 'little_endian', 
-                    is_signed   = True,
-                    unit        = 'V'
                 ),
                 Signal(
-
-                )
+                    name        = f"CELL_{seg}x{cell}_isFaultDetected", 
+                    start       = 33,
+                    length      = 1, 
+                ),
             ]
 
             message = Message(
@@ -83,12 +82,12 @@ dbc = Database(nodes=[Node("shit"), Node("BMS")])
 
 add_inverter_dbc(dbc, "./hv500_can2_map_v24_EID_custom.dbc")
 
-print(dbc.get_message_by_frame_id(0xc14, True))
+# print(dbc.get_message_by_frame_id(0xc14, True))
 
 
-# cell_base_id = 0x077000
+# 0x00XX14 (XX -> 0x00 to 0x24) for the inverter
+cell_base_id = 0xB000
 
-# add_bms_cell_messages(db=dbc, base_id=cell_base_id)
 
-# # Step 4: Save to file
-# save_dbc(dbc, 'bms_can_database.dbc')
+add_bms_cell_messages(db=dbc, base_id=cell_base_id)
+save_dbc(dbc, 'bms_can_database.dbc')
