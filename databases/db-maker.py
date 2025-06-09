@@ -1,6 +1,7 @@
 
 import cantools
 from cantools.database.can import Message, Signal, Database, Node
+from cantools.database.conversion import LinearConversion, LinearIntegerConversion, IdentityConversion
 from pathlib import Path
 
 
@@ -11,18 +12,18 @@ def add_bms_cell_messages(db: Database, base_id):
     num_cells = 16
     num_segments = 7
 
-
-
-
+    # int16 range = -32,768 to 32,767
+    voltage_conversion = LinearConversion(0.001, 0, False)
+    temp_conversion = LinearConversion(0.01, 0, False)
+    flag_conversion = IdentityConversion(False) # This is the default for signal 
 
     for cell in range(num_cells): 
         for seg in range(num_segments):
-
-            
             
             signals = [
                 Signal(
                     name        = f"CELL_{seg}x{cell}_Voltage", 
+                    conversion  = voltage_conversion,
                     start       = 0, 
                     length      = 16, 
                     byte_order  = 'little_endian', 
@@ -31,19 +32,20 @@ def add_bms_cell_messages(db: Database, base_id):
                 ),
                 Signal(
                     name        = f"CELL_{seg}x{cell}_Temps", 
+                    conversion  = temp_conversion,
                     start       = 16, 
                     length      = 16, 
                     byte_order  = 'little_endian', 
                     is_signed   = True,
-                    unit        = 'V'
+                    unit        = 'degC'
                 ),
                 Signal(
-                    name        = f"CELL_{seg}x{cell}_isDischarging", 
+                    name        = f"CELL_{seg}x{cell}_isDischarging",
                     start       = 32, 
                     length      = 1, 
                 ),
                 Signal(
-                    name        = f"CELL_{seg}x{cell}_isFaultDetected", 
+                    name        = f"CELL_{seg}x{cell}_isFaultDetected",
                     start       = 33,
                     length      = 1, 
                 ),
@@ -78,7 +80,7 @@ def add_inverter_dbc(db: Database, filename):
 
 
 # Create an empty CAN database
-dbc = Database(nodes=[Node("shit"), Node("BMS")])
+dbc = Database(nodes=[Node("BMS")])
 
 add_inverter_dbc(dbc, "./hv500_can2_map_v24_EID_custom.dbc")
 

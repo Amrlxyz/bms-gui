@@ -2,8 +2,12 @@ from pathlib import Path
 import datetime
 import queue
 import can
+import cantools
+from cantools.database.can import Message, Signal, Database, Node
 import tkinter as tk
 from tkinter import ttk
+from pprint import pprint
+
 
 class CANListener(can.Listener):
     """
@@ -13,7 +17,6 @@ class CANListener(can.Listener):
     """
     def __init__(self, msg_queue: queue.Queue):
         self.queue = msg_queue
-
 
     def on_message_received(self, msg: can.Message):
         """
@@ -27,6 +30,7 @@ class CANListener(can.Listener):
         Called by the Notifier thread when an error occurs.
         """
         print(f"An error occurred in the CAN listener: {exc}")
+        can.BufferedReader
 
 
 class InputFrame(ttk.Frame):
@@ -80,7 +84,7 @@ class InputFrame(ttk.Frame):
 
 
 class Application(tk.Tk):
-    def __init__(self, usb_can_path: str, bitrate: int):
+    def __init__(self, usb_can_path: str, dbc_path: str, bitrate: int):
         super().__init__()
         self.title("CAN Bus Logger and GUI")
         self.geometry("800x600")
@@ -92,9 +96,6 @@ class Application(tk.Tk):
         self.log_file = None
 
         self.start_timestamp = 0
-        self.prev_timestamp = 0
-        self.avg_time = 0
-        self.message_count = 0
         
         # Thread-safe queue for messages from the CAN thread
         self.can_message_queue = queue.Queue()
@@ -112,6 +113,14 @@ class Application(tk.Tk):
 
         self.other_frame = InputFrame(self)
         self.other_frame.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
+
+        
+        # Load CAN db file
+        self.db:Database = cantools.database.load_file(dbc_path)
+        self.data_log = {}
+        for message in self.db.messages:
+            for signal in message.signals:
+                self.data_log[signal.name] = []
 
 
         # --- CAN Bus and Logging Initialization ---
@@ -162,21 +171,21 @@ class Application(tk.Tk):
             while not self.can_message_queue.empty():
                 msg : can.Message = self.can_message_queue.get_nowait()
 
+                # Get start program time and calculate the relative time since program start
                 if self.start_timestamp == 0:
                     self.start_timestamp = msg.timestamp
-                    timedelta = 0
-                else:
-                    timedelta = msg.timestamp - self.prev_timestamp
-                self.prev_timestamp = msg.timestamp
+                relative_time = (msg.timestamp - self.start_timestamp)
 
-                timedelta = int(round(timedelta*1_000_000))
-                self.message_count += 1
-                self.avg_time = (timedelta + self.avg_time * (self.message_count-1)) / self.message_count
+                try:
+                    decoded_dict = self.db.decode_message(msg.arbitration_id, msg.data)
+                    for signal, data in decoded_dict.items():
+                        self.data_log[signal].append((relative_time, data))
 
-                msg.timestamp = msg.timestamp - self.start_timestamp
+                except ValueError:
+                    print("unknown frame recieved")
 
                 # Update the GUI with the new message
-                self.received_messages_frame.log_message(str(msg) + "   TimeDiff:   " + str(timedelta) + "  AVG: " + str(self.avg_time))
+                self.received_messages_frame.log_message(str(msg))
                 
         except queue.Empty:
             # This is expected when the queue is empty
@@ -200,6 +209,8 @@ class Application(tk.Tk):
         if self.log_file:
             self.log_file.close()
             print("Log file closed.")
+
+        pprint(self.data_log)
         
         self.destroy() # Close the tkinter window
 
@@ -207,9 +218,10 @@ class Application(tk.Tk):
 def main():
     # --- Configuration ---
     usb_can_path = "/dev/serial/by-id/usb-WeAct_Studio_USB2CANV1_ComPort_AAA120643984-if00"
+    dbc_filepath = "./databases/bms_can_database.dbc"
     bitrate = 500000
 
-    app = Application(usb_can_path=usb_can_path, bitrate=bitrate)
+    app = Application(usb_can_path=usb_can_path, bitrate=bitrate, dbc_path=dbc_filepath)
     app.mainloop()
 
 
