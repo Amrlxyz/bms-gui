@@ -121,22 +121,22 @@ class SystemInfoFrame(ttk.Frame):
     def __init__(self, parent, plot_callback):
         super().__init__(parent, borderwidth=1, relief="solid")
 
-        voltage_label = ttk.Label(self, text="Voltage: --- V", font=("Helvetica", 32), cursor="hand2", background="gray", anchor="center")
-        voltage_label.grid(row=0, column=0, columnspan=1, sticky="nsew", pady=3)
+        self.voltage_label = ttk.Label(self, text="Voltage: --- V", font=("Helvetica", 32), cursor="hand2", background="gray", anchor="center")
+        self.voltage_label.grid(row=0, column=0, columnspan=1, sticky="nsew", pady=3)
         
-        current_label = ttk.Label(self, text="Current: --- A", font=("Helvetica", 32), cursor="hand2", background="gray", anchor="center")
-        current_label.grid(row=1, column=0, columnspan=1, sticky="nsew", pady=3)
+        self.current_label = ttk.Label(self, text="Current: --- A", font=("Helvetica", 32), cursor="hand2", background="gray", anchor="center")
+        self.current_label.grid(row=1, column=0, columnspan=1, sticky="nsew", pady=3)
 
         # Bind for plotting
-        voltage_label.bind("<Button-1>", lambda e: plot_callback("BMS_Pack_Voltage"))
-        current_label.bind("<Button-1>", lambda e: plot_callback("BMS_Pack_Current"))
+        self.voltage_label.bind("<Button-1>", lambda e: plot_callback("BMS_Pack_Voltage"))
+        self.current_label.bind("<Button-1>", lambda e: plot_callback("BMS_Pack_Current"))
 
 
     def update_values(self, voltage, current):
         if voltage is not None:
-            self.voltage_var.set(f"Voltage: {voltage:.2f} V")
+            self.voltage_label.config(text=f"Voltage: {voltage:.2f} V")
         if current is not None:
-            self.current_var.set(f"Current: {current:.2f} A")
+            self.current_label.config(text=f"Current: {current:.2f} A")
             
 class LogFrame(ttk.LabelFrame):
     """A frame for displaying incoming CAN messages."""
@@ -329,7 +329,11 @@ class Application(tk.Tk):
         
         except queue.Empty:
             pass # Expected
+
         finally:
+
+
+
             self.after(100, self.process_can_messages)
 
     def update_widget_for_signal(self, signal_name: str):

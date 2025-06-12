@@ -62,6 +62,40 @@ def add_bms_cell_messages(db: Database, base_id):
 
             db.messages.append(message)
             
+    pack_voltage_conversion = LinearConversion(0.000_001, 0, False)
+    current_conversion = LinearConversion(0.001, 0, False)
+
+    signals = [
+        Signal(
+            name        = f"BMS_Pack_Voltage", 
+            conversion  = pack_voltage_conversion,
+            start       = 0, 
+            length      = 32, 
+            byte_order  = 'little_endian', 
+            is_signed   = True,
+            unit        = 'V'
+        ),
+        Signal(
+            name        = f"BMS_Pack_Current", 
+            conversion  = current_conversion,
+            start       = 32, 
+            length      = 32, 
+            byte_order  = 'little_endian', 
+            is_signed   = True,
+            unit        = 'A'
+        ),
+    ]
+
+    message = Message(
+        name                = f"PACK_MSG", 
+        frame_id            = base_id + (num_segments * num_cells),
+        signals             = signals,
+        length              = 8, 
+        is_extended_frame   = True,
+        senders             = ["BMS"]
+    )
+
+    db.messages.append(message)
     db.refresh()
 
 
