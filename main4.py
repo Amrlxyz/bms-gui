@@ -56,76 +56,85 @@ class CellWidget(ttk.Frame):
         self.cell_id = cell_id # cell_id is a tuple (row, col)
         
         # --- Layout Configuration ---
-        self.columnconfigure(0, weight=2) # Temp
+        self.columnconfigure(0, weight=5) # Temp
         self.columnconfigure(1, weight=1) # Fault
         self.columnconfigure(2, weight=1) # Discharging
         self.rowconfigure(0, weight=1)
         self.rowconfigure(1, weight=1)
 
         # --- Widgets ---
-        self.voltage_label = ttk.Label(self, text="--- V", anchor="center", background="gray", cursor="hand2")
-        self.voltage_label.grid(row=0, column=0, columnspan=3, sticky="nsew", pady=1)
+        self.voltage_label      = ttk.Label(self, text="--- V"  , anchor="center", background="gray", cursor="hand2")
+        self.voltageDiff_label  = ttk.Label(self, text="-- mV"  , anchor="center", background="gray", cursor="hand2")
+        self.temp_label         = ttk.Label(self, text="-- °C"  , anchor="center", background="gray", cursor="hand2")
+        self.fault_label        = ttk.Label(self, text="FT"     , anchor="center", background="gray", cursor="hand2")
+        self.discharging_label  = ttk.Label(self, text="DC"     , anchor="center", background="gray", cursor="hand2")
 
-        self.temp_label = ttk.Label(self, text="-- °C", anchor="center", background="gray", cursor="hand2")
-        self.temp_label.grid(row=1, column=0, sticky="nsew", padx=(0,1))
-
-        self.fault_label = ttk.Label(self, text="FT", anchor="center", background="gray", cursor="hand2")
-        self.fault_label.grid(row=1, column=1, sticky="nsew", padx=(0,1))
-
-        self.discharging_label = ttk.Label(self, text="DC", anchor="center", background="gray", cursor="hand2")
-        self.discharging_label.grid(row=1, column=2, sticky="nsew")
+        self.voltage_label.grid     (row=0, column=0, columnspan=1, sticky="nsew", pady=1, padx=(0,1))
+        self.voltageDiff_label.grid (row=0, column=1, columnspan=2, sticky="nsew", pady=1)
+        self.temp_label.grid        (row=1, column=0, sticky="nsew", padx=(0,1))
+        self.fault_label.grid       (row=1, column=1, sticky="nsew", padx=(0,1))
+        self.discharging_label.grid (row=1, column=2, sticky="nsew")
         
         # --- Click Binding ---
-        # Bind the whole frame for selection highlighting
-        self.bind_all_children("<Button-1>", lambda event: select_callback(self.cell_id))
-        
         # Bind individual labels for plotting
         row, col = self.cell_id
-        voltage_signal = f"CELL_{col}x{row}_Voltage"
-        temp_signal = f"CELL_{col}x{row}_Temps"
-        self.voltage_label.bind("<Button-1>", lambda event: plot_callback(voltage_signal))
-        self.temp_label.bind("<Button-1>", lambda event: plot_callback(temp_signal))
+        seg = col + 1
+        cell_idx = row + 1
+        voltage_signal      = f"CELL_{seg}x{cell_idx}_Voltage"
+        diff_signal         = f"CELL_{seg}x{cell_idx}_VoltageDiff"
+        temp_signal         = f"CELL_{seg}x{cell_idx}_Temp"
+        fault_signal        = f"CELL_{seg}x{cell_idx}_isFaultDetected"
+        discharge_signal    = f"CELL_{seg}x{cell_idx}_isDischarging"
+        
+        self.voltage_label.bind("<Button-1>",       lambda event: [select_callback(self.cell_id), plot_callback(voltage_signal)])
+        self.voltageDiff_label.bind("<Button-1>",   lambda event: [select_callback(self.cell_id), plot_callback(diff_signal)])
+        self.temp_label.bind("<Button-1>",          lambda event: [select_callback(self.cell_id), plot_callback(temp_signal)])
+        self.fault_label.bind("<Button-1>",         lambda event: [select_callback(self.cell_id), plot_callback(fault_signal)])
+        self.discharging_label.bind("<Button-1>",   lambda event: [select_callback(self.cell_id), plot_callback(discharge_signal)])
 
 
-    def bind_all_children(self, sequence, callback):
-        """Binds an event to the frame and all its child widgets."""
-        self.bind(sequence, callback)
-        for child in self.winfo_children():
-            # Don't override the specific plot callbacks on the labels
-            if child not in [self.voltage_label, self.temp_label]:
-                child.bind(sequence, callback)
-
-    def update_data(self, voltage: float, temp: float, is_faulted: bool, is_discharging: bool):
+    def update_data(self, voltage: float, voltageDiff: int, temp: float, is_faulted: bool, is_discharging: bool):
         """Updates the text and colors of the cell display."""
         # Update Voltage
         if voltage is not None:
-            self.voltage_label.config(text=f"{voltage:.2f} V")
+            self.voltage_label.config(text=f"{voltage:.3f} V")
             color = interpolate_color(voltage, 3.0, 4.2, "#FF0000", "#00FF00") # Red to Green
+            self.voltage_label.config(background=color)
+
+        # Update Diff
+        if voltageDiff is not None:
+            self.voltage_label.config(text=f"{voltage:+} mV")
+            color = interpolate_color(voltage, 0, 500, "#00FF00", "#FF0000") # Red to Green
             self.voltage_label.config(background=color)
 
         # Update Temperature
         if temp is not None:
-            self.temp_label.config(text=f"{temp:.1f} °C")
+            self.temp_label.config(text=f"{temp:.2f} °C")
             color = interpolate_color(temp, 10, 100, "#00FF00", "#FF0000") # Green to Red
             self.temp_label.config(background=color)
         
         # Update Flags
         if is_faulted is not None:
-            self.fault_label.config(background="#0000FF" if is_faulted else "gray") # Blue or Gray
+            self.fault_label.config(background="#FF0000" if is_faulted else "gray") # Blue or Gray
         
         if is_discharging is not None:
             self.discharging_label.config(background="#0000FF" if is_discharging else "gray") # Blue or Gray
+
 
 class SystemInfoFrame(ttk.Frame):
     """A frame to display overall system voltage and current."""
     def __init__(self, parent, plot_callback):
         super().__init__(parent, borderwidth=1, relief="solid")
 
+        self.columnconfigure(0, weight=1)  # Make column expandable
+        self.rowconfigure(0, weight=1)     # Make rows expandable
+        self.rowconfigure(1, weight=1)
+
         self.voltage_label = ttk.Label(self, text="Voltage: --- V", font=("Helvetica", 32), cursor="hand2", background="gray", anchor="center")
-        self.voltage_label.grid(row=0, column=0, columnspan=1, sticky="nsew", pady=3)
+        self.voltage_label.grid(row=0, column=0, columnspan=1, sticky="nsew")
         
         self.current_label = ttk.Label(self, text="Current: --- A", font=("Helvetica", 32), cursor="hand2", background="gray", anchor="center")
-        self.current_label.grid(row=1, column=0, columnspan=1, sticky="nsew", pady=3)
+        self.current_label.grid(row=1, column=0, columnspan=1, sticky="nsew")
 
         # Bind for plotting
         self.voltage_label.bind("<Button-1>", lambda e: plot_callback("BMS_Pack_Voltage"))
@@ -262,11 +271,12 @@ class Application(tk.Tk):
                 cell_widget.grid(row=row, column=col, sticky="nsew", padx=1, pady=1)
                 self.cells[row][col] = cell_widget
                 
-                seg = col
-                cell_idx = row
+                seg = col + 1
+                cell_idx = row + 1
                 
                 self.signal_to_widget_map[f"CELL_{seg}x{cell_idx}_Voltage"] = cell_widget
-                self.signal_to_widget_map[f"CELL_{seg}x{cell_idx}_Temps"] = cell_widget
+                self.signal_to_widget_map[f"CELL_{seg}x{cell_idx}_VoltageDiff"] = cell_widget
+                self.signal_to_widget_map[f"CELL_{seg}x{cell_idx}_Temp"] = cell_widget
                 self.signal_to_widget_map[f"CELL_{seg}x{cell_idx}_isDischarging"] = cell_widget
                 self.signal_to_widget_map[f"CELL_{seg}x{cell_idx}_isFaultDetected"] = cell_widget
         
@@ -311,7 +321,9 @@ class Application(tk.Tk):
             while not self.can_message_queue.empty():
                 msg: can.Message = self.can_message_queue.get_nowait()
                 
-                if self.start_timestamp == 0: self.start_timestamp = msg.timestamp
+                if self.start_timestamp == 0: 
+                    self.start_timestamp = msg.timestamp
+
                 relative_time = msg.timestamp - self.start_timestamp
                 
                 self.log_frame.log_message(str(msg))
@@ -325,15 +337,13 @@ class Application(tk.Tk):
                             self.update_widget_for_signal(signal_name)
                             
                 except KeyError: # Unknown message ID
+                    print("Unknown Message ID", msg)
                     pass
         
         except queue.Empty:
             pass # Expected
 
         finally:
-
-
-
             self.after(100, self.process_can_messages)
 
     def update_widget_for_signal(self, signal_name: str):
@@ -342,20 +352,22 @@ class Application(tk.Tk):
 
         if isinstance(widget, CellWidget):
             row, col = widget.cell_id
-            seg = col
-            cell_idx = row
+            seg = col + 1
+            cell_idx = row + 1
             
-            v_sig = f"CELL_{seg}x{cell_idx}_Voltage"
-            t_sig = f"CELL_{seg}x{cell_idx}_Temps"
-            d_sig = f"CELL_{seg}x{cell_idx}_isDischarging"
-            f_sig = f"CELL_{seg}x{cell_idx}_isFaultDetected"
+            v_sig  = f"CELL_{seg}x{cell_idx}_Voltage"
+            vd_sig = f"CELL_{seg}x{cell_idx}_VoltageDiff"
+            t_sig  = f"CELL_{seg}x{cell_idx}_Temp"
+            d_sig  = f"CELL_{seg}x{cell_idx}_isDischarging"
+            f_sig  = f"CELL_{seg}x{cell_idx}_isFaultDetected"
             
-            v = self.data_log.get(v_sig, [])[-1][1] if self.data_log.get(v_sig) else None
-            t = self.data_log.get(t_sig, [])[-1][1] if self.data_log.get(t_sig) else None
-            d = self.data_log.get(d_sig, [])[-1][1] if self.data_log.get(d_sig) else None
-            f = self.data_log.get(f_sig, [])[-1][1] if self.data_log.get(f_sig) else None
+            v  = self.data_log.get(v_sig,  [])[-1][1] if self.data_log.get(v_sig) else None
+            vd = self.data_log.get(vd_sig, [])[-1][1] if self.data_log.get(v_sig) else None
+            t  = self.data_log.get(t_sig,  [])[-1][1] if self.data_log.get(t_sig) else None
+            d  = self.data_log.get(d_sig,  [])[-1][1] if self.data_log.get(d_sig) else None
+            f  = self.data_log.get(f_sig,  [])[-1][1] if self.data_log.get(f_sig) else None
             
-            widget.update_data(voltage=v, temp=t, is_faulted=f, is_discharging=d)
+            widget.update_data(voltage=v, voltageDiff=vd, temp=t, is_faulted=f, is_discharging=d)
 
         elif isinstance(widget, SystemInfoFrame):
             v = self.data_log.get("BMS_Pack_Voltage", [])[-1][1] if self.data_log.get("BMS_Pack_Voltage") else None
@@ -377,7 +389,7 @@ class Application(tk.Tk):
         self.selected_cell_id = cell_id
         new_row, new_col = cell_id
         if self.cells[new_row][new_col]:
-             self.cells[new_row][new_col].config(relief="solid", borderwidth=3)
+            self.cells[new_row][new_col].config(relief="solid", borderwidth=3)
         
     def on_signal_selected_for_plot(self, signal_name: str):
         """Callback for when a signal is chosen for plotting."""
@@ -400,7 +412,7 @@ class Application(tk.Tk):
             # except KeyError:
             #     pass # Signal not found, no unit
 
-            self.ax.set_title(f"Data for: {self.plotted_signal_name}")
+            self.ax.set_title(f"{self.plotted_signal_name}")
             self.ax.set_ylabel(f"Value {unit}")
 
             if signal_data:
@@ -431,7 +443,7 @@ def main():
     # --- Configuration ---
     usb_can_path = "/dev/serial/by-id/usb-WeAct_Studio_USB2CANV1_ComPort_AAA120643984-if00"
     dbc_filepath = "./databases/bms_can_database.dbc"
-    bitrate = 500000
+    bitrate = 250000
 
     app = Application(usb_can_path=usb_can_path, bitrate=bitrate, dbc_path=dbc_filepath)
     app.mainloop()

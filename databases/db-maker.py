@@ -14,11 +14,59 @@ def add_bms_cell_messages(db: Database, base_id):
 
     # int16 range = -32,768 to 32,767
     voltage_conversion = LinearConversion(0.001, 0, False)
+    voltageDiff_conversion = LinearConversion(1, 0, False)
     temp_conversion = LinearConversion(0.01, 0, False)
     flag_conversion = IdentityConversion(False) # This is the default for signal 
 
-    for cell in range(num_cells): 
-        for seg in range(num_segments):
+    for seg in range(num_segments): 
+        seg += 1 # Change to 1 indexing for names
+
+        signals = [
+            Signal(
+                name        = f"SEG_{seg}_IC_Voltage", 
+                conversion  = voltage_conversion,
+                start       = 0, 
+                length      = 32, 
+                byte_order  = 'little_endian', 
+                is_signed   = True,
+                unit        = 'V'
+            ),
+            Signal(
+                name        = f"SEG_{seg}_IC_Temp", 
+                conversion  = temp_conversion,
+                start       = 32, 
+                length      = 16, 
+                byte_order  = 'little_endian', 
+                is_signed   = True,
+                unit        = 'degC'
+            ),
+            Signal(
+                name        = f"SEG_{seg}_isCommsError",
+                start       = 48, 
+                length      = 1, 
+            ),
+            Signal(
+                name        = f"SEG_{seg}_isFaultDetected",
+                start       = 49,
+                length      = 1, 
+            ),
+        ]
+
+        message = Message(
+            name                = f"SEG_{seg}_MSG", 
+            frame_id            = base_id + (7*num_cells) + (seg-1),
+            signals             = signals,
+            length              = 8, 
+            is_extended_frame   = True,
+            senders             = ["BMS"]
+        )
+
+        db.messages.append(message)
+
+
+        for cell in range(num_cells):
+           
+            cell += 1 # Change to 1 indexing for names
             
             signals = [
                 Signal(
@@ -31,9 +79,18 @@ def add_bms_cell_messages(db: Database, base_id):
                     unit        = 'V'
                 ),
                 Signal(
-                    name        = f"CELL_{seg}x{cell}_Temps", 
-                    conversion  = temp_conversion,
+                    name        = f"CELL_{seg}x{cell}_VoltageDiff", 
+                    conversion  = voltageDiff_conversion,
                     start       = 16, 
+                    length      = 16, 
+                    byte_order  = 'little_endian', 
+                    is_signed   = True,
+                    unit        = 'mV'
+                ),
+                Signal(
+                    name        = f"CELL_{seg}x{cell}_Temp", 
+                    conversion  = temp_conversion,
+                    start       = 32, 
                     length      = 16, 
                     byte_order  = 'little_endian', 
                     is_signed   = True,
@@ -41,19 +98,19 @@ def add_bms_cell_messages(db: Database, base_id):
                 ),
                 Signal(
                     name        = f"CELL_{seg}x{cell}_isDischarging",
-                    start       = 32, 
+                    start       = 48, 
                     length      = 1, 
                 ),
                 Signal(
                     name        = f"CELL_{seg}x{cell}_isFaultDetected",
-                    start       = 33,
+                    start       = 49,
                     length      = 1, 
                 ),
             ]
 
             message = Message(
                 name                = f"CELL_{seg}x{cell}_MSG", 
-                frame_id            = base_id + (seg*num_cells) + cell,
+                frame_id            = base_id + ((seg-1)*num_cells) + (cell-1),
                 signals             = signals,
                 length              = 8, 
                 is_extended_frame   = True,
@@ -88,7 +145,7 @@ def add_bms_cell_messages(db: Database, base_id):
 
     message = Message(
         name                = f"PACK_MSG", 
-        frame_id            = base_id + (num_segments * num_cells),
+        frame_id            = base_id + (num_segments * num_cells) + num_segments,
         signals             = signals,
         length              = 8, 
         is_extended_frame   = True,
