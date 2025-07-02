@@ -153,6 +153,30 @@ def add_bms_cell_messages(db: Database, base_id):
     )
 
     db.messages.append(message)
+
+    signals = [
+        Signal(
+            name        = f"CELL_{seg}x{cell}_isDischarging",
+            start       = 0, 
+            length      = 1, 
+        ),
+        Signal(
+            name        = f"CELL_{seg}x{cell}_isFaultDetected",
+            start       = 1,
+            length      = 1, 
+        ),
+    ]
+
+    message = Message(
+        name                = f"PACK_STATUS_MSG", 
+        frame_id            = base_id + (num_segments * num_cells) + num_segments + 1,
+        signals             = signals,
+        length              = 8, 
+        is_extended_frame   = True,
+        senders             = ["BMS"]
+    )
+
+    db.messages.append(message)
     db.refresh()
 
 
@@ -166,8 +190,6 @@ def add_inverter_dbc(db: Database, filename):
         db.add_dbc_file(filename)
     except Exception as e:
         print("Error importing inverter DBC: ", e)
-
-
 
 
 # Create an empty CAN database

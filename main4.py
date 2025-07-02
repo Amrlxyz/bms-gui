@@ -103,9 +103,9 @@ class CellWidget(ttk.Frame):
 
         # Update Diff
         if voltageDiff is not None:
-            self.voltage_label.config(text=f"{voltage:+} mV")
+            self.voltageDiff_label.config(text=f"{voltage:+} mV")
             color = interpolate_color(voltage, 0, 500, "#00FF00", "#FF0000") # Red to Green
-            self.voltage_label.config(background=color)
+            self.voltageDiff_label.config(background=color)
 
         # Update Temperature
         if temp is not None:
@@ -361,11 +361,11 @@ class Application(tk.Tk):
             d_sig  = f"CELL_{seg}x{cell_idx}_isDischarging"
             f_sig  = f"CELL_{seg}x{cell_idx}_isFaultDetected"
             
-            v  = self.data_log.get(v_sig,  [])[-1][1] if self.data_log.get(v_sig) else None
-            vd = self.data_log.get(vd_sig, [])[-1][1] if self.data_log.get(v_sig) else None
-            t  = self.data_log.get(t_sig,  [])[-1][1] if self.data_log.get(t_sig) else None
-            d  = self.data_log.get(d_sig,  [])[-1][1] if self.data_log.get(d_sig) else None
-            f  = self.data_log.get(f_sig,  [])[-1][1] if self.data_log.get(f_sig) else None
+            v  = self.data_log.get(v_sig,  [])[-1][1] if self.data_log.get(v_sig)  else None
+            vd = self.data_log.get(vd_sig, [])[-1][1] if self.data_log.get(vd_sig) else None
+            t  = self.data_log.get(t_sig,  [])[-1][1] if self.data_log.get(t_sig)  else None
+            d  = self.data_log.get(d_sig,  [])[-1][1] if self.data_log.get(d_sig)  else None
+            f  = self.data_log.get(f_sig,  [])[-1][1] if self.data_log.get(f_sig)  else None
             
             widget.update_data(voltage=v, voltageDiff=vd, temp=t, is_faulted=f, is_discharging=d)
 
