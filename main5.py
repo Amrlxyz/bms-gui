@@ -76,8 +76,8 @@ class SegmentWidget(ttk.Frame):
         
         # --- Click Binding ---
         # Bind individual labels for plotting
-        voltage_signal      = f"SEG_{self.seg_id}_Voltage"
-        temp_signal         = f"SEG_{self.seg_id}_Temp"
+        voltage_signal      = f"SEG_{self.seg_id}_IC_Voltage"
+        temp_signal         = f"SEG_{self.seg_id}_IC_Temp"
         fault_signal        = f"SEG_{self.seg_id}_isFaultDetected"
         comms_fault_signal  = f"SEG_{self.seg_id}_isCommsError"
         
@@ -353,8 +353,8 @@ class Application(tk.Tk):
             self.segments[col] = segment_widget
 
             # Map signals to widget
-            self.signal_to_widget_map[f"SEG_{seg_id}_Voltage"] = segment_widget
-            self.signal_to_widget_map[f"SEG_{seg_id}_Temp"] = segment_widget
+            self.signal_to_widget_map[f"SEG_{seg_id}_IC_Voltage"] = segment_widget
+            self.signal_to_widget_map[f"SEG_{seg_id}_IC_Temp"] = segment_widget
             self.signal_to_widget_map[f"SEG_{seg_id}_isFaultDetected"] = segment_widget
             self.signal_to_widget_map[f"SEG_{seg_id}_isCommsError"] = segment_widget
 
@@ -441,7 +441,7 @@ class Application(tk.Tk):
                             self.update_widget_for_signal(signal_name)
                             
                 except KeyError: # Unknown message ID
-                    # print("Unknown Message ID", msg)
+                    print("Unknown Message ID", msg)
                     pass
                 except Exception as e:
                     print(f"Error decoding or processing message: {e}")
@@ -478,8 +478,8 @@ class Application(tk.Tk):
         elif isinstance(widget, SegmentWidget):
             seg_id = widget.seg_id
             
-            v_sig = f"SEG_{seg_id}_Voltage"
-            t_sig = f"SEG_{seg_id}_Temp"
+            v_sig = f"SEG_{seg_id}_IC_Voltage"
+            t_sig = f"SEG_{seg_id}_IC_Temp"
             f_sig = f"SEG_{seg_id}_isFaultDetected"
             cf_sig = f"SEG_{seg_id}_isCommsError"
 

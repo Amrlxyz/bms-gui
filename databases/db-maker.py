@@ -156,12 +156,12 @@ def add_bms_cell_messages(db: Database, base_id):
 
     signals = [
         Signal(
-            name        = f"CELL_{seg}x{cell}_isDischarging",
+            name        = f"BMS_MSTR_isCommsError",
             start       = 0, 
             length      = 1, 
         ),
         Signal(
-            name        = f"CELL_{seg}x{cell}_isFaultDetected",
+            name        = f"BMS_MSTR_isFaultDetected",
             start       = 1,
             length      = 1, 
         ),
