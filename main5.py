@@ -279,6 +279,7 @@ class Application(tk.Tk):
 
         # Data storage and UI component mapping
         self.data_log = {signal.name: [] for msg in self.db.messages for signal in msg.signals}
+        self.data_units = {signal.name: signal.unit for msg in self.db.messages for signal in msg.signals}
         self.signal_to_widget_map = {}
         self.segments = []
         self.cells = []
@@ -540,18 +541,13 @@ class Application(tk.Tk):
         
         if self.plotted_signal_name:
             signal_data = self.data_log.get(self.plotted_signal_name, [])
-            
-            unit = ""
-            # try:
-            #     # Find unit from DBC for the y-axis label
-            #     sig_obj = self.db.get_signal_by_name(self.plotted_signal_name)
-            #     if sig_obj.unit:
-            #         unit = f"({sig_obj.unit})"
-            # except KeyError:
-            #     pass # Signal not found, no unit
+            signal_unit = self.data_units.get(self.plotted_signal_name, "")
 
             self.ax.set_title(f"{self.plotted_signal_name}")
-            self.ax.set_ylabel(f"Value {unit}")
+            if (signal_unit):
+                self.ax.set_ylabel(f"{signal_unit}")
+            else:
+                self.ax.set_ylabel(f"Value")
 
             if signal_data:
                 # Limit plot to last 500 points for performance
