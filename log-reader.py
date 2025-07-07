@@ -21,7 +21,7 @@ signal_names_filter = [
     "Diff",
     "isDischarging",
     # "Temp",
-    "Voltage"
+    # "Voltage"
 ]
 
 
@@ -71,40 +71,50 @@ for msg in can.LogReader(log_file):
 import matplotlib.pyplot as plt
 
 def plot(data_log):
-    # Create separate plots for each message
     for msg_name, data in data_log.items():
-        plt.figure(figsize=(12, 8))
-        
         timestamps = data["timestamps"]
 
         if not timestamps:
             continue
-        
-        for signal_name, val in data["values"].items():
-            # Plot with signal name and units
+
+        signals = list(data["values"].keys())
+        num_signals = len(signals)
+
+        fig, axs = plt.subplots(num_signals, 1, figsize=(12, 3 * num_signals), sharex=True)
+        fig.suptitle(f'CAN Analysis: {msg_name}', fontsize=16)
+
+        # If only one subplot, axs is not a list
+        if num_signals == 1:
+            axs = [axs]
+
+        for i, signal_name in enumerate(signals):
+            ax = axs[i]
+            values = data["values"][signal_name]
             unit = data_units.get(signal_name, '')
-            plt.plot(timestamps, val, 'o-', markersize=2, label=f'{signal_name} [{unit}]' if unit else signal_name)
-        
-        plt.title(f'CAN Analysis: {msg_name}')
-        plt.ylabel('Value')
-        plt.xlabel('Time')
+            label = f'{signal_name} [{unit}]' if unit else signal_name
+
+            ax.plot(timestamps, values, 'o-', markersize=2, label=label)
+            ax.set_ylabel(label)
+            ax.grid(True)
+            if yaxis_range:
+                ax.set_ylim(yaxis_range)
+
+        axs[-1].set_xlabel("Time")
         plt.xlim(time_range)
-        if yaxis_range:
-            plt.ylim(yaxis_range)
-        plt.legend()
-        plt.grid(True)
 
         if enable_live_fig:
+            plt.tight_layout(rect=[0, 0, 1, 0.96])  # Make room for suptitle
             plt.show()
-        
+
         if enable_save_fig:
-            # Save to file instead of showing
-            filename = f'can_plot_{msg_name.replace(" ", "_")}.png'
+            filename = f'can_subplot_{msg_name.replace(" ", "_")}.png'
             results_path = Path("results") / filename
             results_path.parent.mkdir(parents=True, exist_ok=True)
+            plt.tight_layout(rect=[0, 0, 1, 0.96])
             plt.savefig(results_path, dpi=150, bbox_inches='tight')
             print(f'Saved plot: {results_path}')
             plt.close()
+
 
 
 plot(data_log)
