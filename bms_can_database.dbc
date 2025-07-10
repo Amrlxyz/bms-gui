@@ -33,84 +33,8 @@ NS_ :
 
 BS_:
 
-BU_: HV500_commands HV500_controller
+BU_: BMS
 
-
-BO_ 2147491860 HV500_ERPM_DUTY_VOLTAGE: 8 HV500_controller
- SG_ Actual_InputVoltage : 55|16@0- (1,0) [-32768|32767] "V"  HV500_commands
- SG_ Actual_Duty : 39|16@0- (0.1,0) [-3276|3276] "%"  HV500_commands
- SG_ Actual_ERPM : 7|32@0- (1,0) [-214748000|214748000] "ERPM"  HV500_commands
-
-BO_ 2147492116 HV500_AC_DC_current: 8 HV500_controller
- SG_ Actual_DCCurrent : 23|16@0- (0.1,0) [-3276|3276] "A"  HV500_commands
- SG_ Actual_ACCurrent : 7|16@0- (0.1,0) [-3276|3276] "Apk"  HV500_commands
-
-BO_ 2147492372 HV500_Temperatures: 8 HV500_controller
- SG_ Actual_FaultCode : 39|8@0+ (1,0) [0|255] ""  HV500_commands
- SG_ Actual_TempMotor : 23|16@0- (0.1,0) [-3276|3276] "C"  HV500_commands
- SG_ Actual_TempController : 7|16@0- (0.1,0) [-3276|3276] "C"  HV500_commands
-
-BO_ 2147492628 HV500_FOC: 8 HV500_controller
- SG_ Actual_FOC_iq : 39|32@0- (0.01,0) [-2147480000|2147480000] "Apk"  HV500_commands
- SG_ Actual_FOC_id : 7|32@0- (0.01,0) [-2147480000|2147480000] "Apk"  HV500_commands
-
-BO_ 2147492884 HV500_MISC: 8 HV500_controller
- SG_ CAN_map_version : 63|8@0+ (0.1,0) [0|255] "Version"  HV500_commands
- SG_ RPM_min_limit : 40|1@0+ (1,0) [0|1] ""  HV500_commands
- SG_ RPM_max_limit : 41|1@0+ (1,0) [0|1] ""  HV500_commands
- SG_ Power_limit : 42|1@0+ (1,0) [0|1] ""  HV500_commands
- SG_ Capacitor_temp_limit : 32|1@0+ (1,0) [0|1] ""  HV500_commands
- SG_ DC_current_limit : 33|1@0+ (1,0) [0|1] ""  HV500_commands
- SG_ Drive_enable_limit : 34|1@0+ (1,0) [0|1] ""  HV500_commands
- SG_ IGBT_accel_limit : 35|1@0+ (1,0) [0|1] ""  HV500_commands
- SG_ IGBT_temp_limit : 36|1@0+ (1,0) [0|1] ""  HV500_commands
- SG_ Input_voltage_limit : 37|1@0+ (1,0) [0|1] ""  HV500_commands
- SG_ Motor_accel_limit : 38|1@0+ (1,0) [0|1] ""  HV500_commands
- SG_ Motor_temp_limit : 39|1@0+ (1,0) [0|1] ""  HV500_commands
- SG_ Drive_enable : 31|8@0+ (1,0) [0|1] ""  HV500_commands
- SG_ Digital_input_1 : 16|1@0+ (1,0) [0|1] ""  HV500_commands
- SG_ Digital_input_2 : 17|1@0+ (1,0) [0|1] ""  HV500_commands
- SG_ Digital_input_3 : 18|1@0+ (1,0) [0|1] ""  HV500_commands
- SG_ Digital_input_4 : 19|1@0+ (1,0) [0|1] ""  HV500_commands
- SG_ Digital_output_1 : 20|1@0+ (1,0) [0|1] ""  HV500_commands
- SG_ Digital_output_2 : 21|1@0+ (1,0) [0|1] ""  HV500_commands
- SG_ Digital_output_3 : 22|1@0+ (1,0) [0|1] ""  HV500_commands
- SG_ Digital_output_4 : 23|1@0+ (1,0) [0|1] ""  HV500_commands
- SG_ Actual_Brake : 15|8@0- (1,0) [-128|127] "%"  HV500_commands
- SG_ Actual_Throttle : 7|8@0- (1,0) [-128|127] "%"  HV500_commands
-
-BO_ 2147486740 HV500_SetDriveEnable: 2 HV500_commands
- SG_ CMD_DriveEnable : 7|8@0+ (1,0) [0|1] ""  HV500_controller
-
-BO_ 2147483924 HV500_SetAcCurrent: 8 HV500_commands
- SG_ CMD_TargetAcCurrent : 7|16@0- (0.1,0) [-1000|1000] "A"  HV500_controller
-
-BO_ 2147484180 HV500_SetBrakeCurrent: 8 HV500_commands
- SG_ CMD_TargetBrakeCurrent : 7|16@0- (0.1,0) [0|1000] "A"  HV500_controller
-
-BO_ 2147484436 HV500_SetERPM: 4 HV500_commands
- SG_ CMD_TargetSpeed : 7|32@0- (1,0) [-2147480000|2147480000] "ERPM"  HV500_controller
-
-BO_ 2147484692 HV500_SetPosition: 2 HV500_commands
- SG_ CMD_TargetPosition : 7|16@0- (0.1,0) [0|360] "degree"  HV500_controller
-
-BO_ 2147484948 HV500_SetRelCurrent: 2 HV500_commands
- SG_ CMD_TargetRelativeCurrent : 7|16@0- (0.1,0) [-100|100] "%"  HV500_controller
-
-BO_ 2147485204 HV500_SetRelBrakeCurrent: 2 HV500_commands
- SG_ CMD_TargeRelativeBrakeCurrent : 7|16@0- (0.1,0) [0|100] "%"  HV500_controller
-
-BO_ 2147485716 HV500_SetMaxAcCurrent: 2 HV500_commands
- SG_ CMD_MaxAcCurrent : 7|16@0- (0.1,0) [0|500] "A"  HV500_controller
-
-BO_ 2147485972 HV500_SetMaxAcBrakeCurrent: 2 HV500_commands
- SG_ CMD_MaxAcBrakeCurrent : 7|16@0- (0.1,0) [0|500] "A"  HV500_controller
-
-BO_ 2147486228 HV500_SetMaxDcCurrent: 2 HV500_commands
- SG_ CMD_MaxDcCurrent : 7|16@0- (0.1,0) [0|350] "A"  HV500_controller
-
-BO_ 2147486484 HV500_SetMaxDcBrakeCurrent: 2 HV500_commands
- SG_ CMD_MaxDcBrakeCurrent : 7|16@0- (0.1,0) [0|350] "A"  HV500_controller
 
 BO_ 2147528816 SEG_1_MSG: 8 BMS
  SG_ SEG_1_isFaultDetected : 49|1@1+ (1,0) [0|0] "" Vector__XXX
@@ -949,44 +873,10 @@ BO_ 2147528824 PACK_STATUS_MSG: 8 BMS
 
 
 
-CM_ BO_ 2147491860 "Node ID: 20";
-CM_ BO_ 2147492116 "Node ID: 20";
-CM_ BO_ 2147492372 "Node ID: 20";
-CM_ BO_ 2147492628 "Node ID: 20";
-CM_ BO_ 2147492884 "Node ID: 20";
-CM_ BO_ 2147486740 "Node ID: 20";
-CM_ BO_ 2147483924 "Node ID: 20";
-CM_ BO_ 2147484180 "Node ID: 20";
-CM_ BO_ 2147484436 "Node ID: 20";
-CM_ BO_ 2147484692 "Node ID: 20";
-CM_ BO_ 2147484948 "Node ID: 20";
-CM_ BO_ 2147485204 "Node ID: 20";
-CM_ BO_ 2147485716 "Node ID: 20";
-CM_ BO_ 2147485972 "Node ID: 20";
-CM_ BO_ 2147486228 "Node ID: 20";
-CM_ BO_ 2147486484 "Node ID: 20";
-BA_DEF_ BO_  "GenMsgSendType" ENUM  "Cyclic","IfActive";
-BA_DEF_ BO_  "GenMsgCycleTime" INT 0 0;
-BA_DEF_ BO_  "GenMsgTimeoutTime" INT 0 0;
-BA_DEF_ BO_  "GenMsgBackgroundColor" STRING ;
-BA_DEF_ BO_  "GenMsgForegroundColor" STRING ;
-BA_DEF_ BO_  "isj1939dbc" INT 0 0;
-BA_DEF_DEF_  "GenMsgSendType" "Cyclic";
-BA_DEF_DEF_  "GenMsgCycleTime" 0;
-BA_DEF_DEF_  "GenMsgTimeoutTime" 0;
-BA_DEF_DEF_  "GenMsgBackgroundColor" "#ffffff";
-BA_DEF_DEF_  "GenMsgForegroundColor" "#000000";
-BA_DEF_DEF_  "isj1939dbc" 0;
-BA_ "GenMsgCycleTime" BO_ 2147491860 100;
-BA_ "GenMsgSendType" BO_ 2147491860 0;
-BA_ "GenMsgCycleTime" BO_ 2147492116 100;
-BA_ "GenMsgSendType" BO_ 2147492116 0;
-BA_ "GenMsgCycleTime" BO_ 2147492372 100;
-BA_ "GenMsgSendType" BO_ 2147492372 0;
-BA_ "GenMsgCycleTime" BO_ 2147492628 100;
-BA_ "GenMsgSendType" BO_ 2147492628 0;
-BA_ "GenMsgCycleTime" BO_ 2147492884 100;
-BA_ "GenMsgSendType" BO_ 2147492884 0;
+
+
+
+
 
 
 

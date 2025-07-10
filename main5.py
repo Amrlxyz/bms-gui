@@ -271,7 +271,7 @@ class Application(tk.Tk):
         # --- App State ---
         self.bus = None
         self.notifier = None
-        self.asc_writer = None
+        self.log_writer = None
         self.log_file = None
         self.start_timestamp = 0
         self.can_message_queue = queue.Queue()
@@ -398,21 +398,22 @@ class Application(tk.Tk):
 
     def _initialize_can_and_logging(self, usb_can_path: str, bitrate: int):
         try:
-            log_filename = f"can_log_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.asc" 
+            self.bus = can.Bus(interface="slcan", channel=usb_can_path, bitrate=bitrate)
+
+            log_filename = f"can_log_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.log" 
             log_file_path = Path("logs") / log_filename
             log_file_path.parent.mkdir(parents=True, exist_ok=True)
             self.log_file = open(log_file_path, "a", encoding='utf-8', newline='')
-            self.asc_writer = can.ASCWriter(self.log_file)
-
-            self.bus = can.Bus(interface="slcan", channel=usb_can_path, bitrate=bitrate)
+            self.log_writer = can.CanutilsLogWriter(self.log_file)
             
             listeners = [
                 CANListener(self.can_message_queue),
-                self.asc_writer,
+                self.log_writer,
                 # can.Printer(), # Can be noisy, uncomment for debugging
             ]
             self.notifier = can.Notifier(self.bus, listeners)
             self.log_frame.log_message("Successfully connected to CAN bus.")
+
         except Exception as e:
             error_msg = f"Error initializing CAN: {e}"
             self.log_frame.log_message(error_msg)
@@ -433,7 +434,8 @@ class Application(tk.Tk):
 
                 try:
                     decoded = self.db.decode_message(msg.arbitration_id, msg.data)
-                    log_msg_str = f"ID: {hex(msg.arbitration_id)} {self.db.get_message_by_frame_id(msg.arbitration_id).name} {decoded}"
+                    log_msg_str = f"ID: {hex(msg.arbitration_id)} {decoded}"
+                    # log_msg_str = f"ID: {hex(msg.arbitration_id)} {self.db.get_message_by_frame_id(msg.arbitration_id).name} {decoded}"
                     self.log_frame.log_message(log_msg_str)
                     
                     for signal_name, value in decoded.items():
@@ -442,7 +444,7 @@ class Application(tk.Tk):
                             self.update_widget_for_signal(signal_name)
                             
                 except KeyError: # Unknown message ID
-                    print("Unknown Message ID", msg)
+                    print("Unknown Message ID: ->  ", msg)
                     pass
                 except Exception as e:
                     print(f"Error decoding or processing message: {e}")
