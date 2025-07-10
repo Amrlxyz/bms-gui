@@ -436,7 +436,7 @@ class Application(tk.Tk):
                     decoded = self.db.decode_message(msg.arbitration_id, msg.data)
                     log_msg_str = f"ID: {hex(msg.arbitration_id)} {decoded}"
                     # log_msg_str = f"ID: {hex(msg.arbitration_id)} {self.db.get_message_by_frame_id(msg.arbitration_id).name} {decoded}"
-                    self.log_frame.log_message(log_msg_str)
+                    # self.log_frame.log_message(log_msg_str)
                     
                     for signal_name, value in decoded.items():
                         if signal_name in self.data_log:
@@ -445,6 +445,7 @@ class Application(tk.Tk):
                             
                 except KeyError: # Unknown message ID
                     print("Unknown Message ID: ->  ", msg)
+                    self.log_frame.log_message(f"Unknown ID: {hex(msg.arbitration_id)}, {''.join(f'{i:02X} ' for i in msg.data)}")
                     pass
                 except Exception as e:
                     print(f"Error decoding or processing message: {e}")
